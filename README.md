@@ -97,6 +97,10 @@ The apply path generates 100 workspace rules in
 workspaces to their correct owners, preserves the current main row, and avoids
 reloads when the generated file is unchanged.
 
+The example session configuration dispatches workspace 11 after startup, once
+monitor ownership has settled, so every new Hyprland login begins at the first
+grid cell.
+
 ## ahelp
 
 `ahelp` is intentionally organized first and dynamic second. Its stable,
