@@ -133,11 +133,11 @@ ahelp --plain          # no ANSI color, suitable for scripts/logs
 
 The renderer adapts to terminal width:
 
-- every grid item is a command/description column pair;
-- the live width selects one, two, three, or more pairs per row;
-- all available cells are redistributed rather than using fixed card widths;
-- command names and descriptions wrap by visible cell width;
-- tables use alternating truecolor rows;
+- every command is a separate rounded, note-like blob;
+- name and content determine each card's preferred width and wrapped height;
+- the live width greedily packs one, two, three, or more varied cards per row;
+- incomplete rows stay compact and centered instead of growing empty cells;
+- six restrained truecolor palettes visually separate adjacent cards;
 - Private Use Area glyphs are marked printable for the optional `less` pager,
   preventing `<U+F...>` escapes.
 

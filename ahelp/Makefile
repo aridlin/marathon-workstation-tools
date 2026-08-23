@@ -27,9 +27,10 @@ test: ahelp
 	COLUMNS=50 ./ahelp --plain --no-pager 'files, packages & processes' > .ahelp-grid-1-test.txt
 	COLUMNS=90 ./ahelp --plain --no-pager 'files, packages & processes' > .ahelp-grid-2-test.txt
 	COLUMNS=130 ./ahelp --plain --no-pager 'files, packages & processes' > .ahelp-grid-3-test.txt
-	test "$$(rg -o 'COMMAND' .ahelp-grid-1-test.txt | wc -l)" -eq 1
-	test "$$(rg -o 'COMMAND' .ahelp-grid-2-test.txt | wc -l)" -eq 2
-	test "$$(rg -o 'COMMAND' .ahelp-grid-3-test.txt | wc -l)" -eq 3
+	awk '{ line=$$0; count=gsub(/╭─/, "", line); if (count > max) max=count } END { exit max == 1 ? 0 : 1 }' .ahelp-grid-1-test.txt
+	awk '{ line=$$0; count=gsub(/╭─/, "", line); if (count > max) max=count } END { exit max == 2 ? 0 : 1 }' .ahelp-grid-2-test.txt
+	awk '{ line=$$0; count=gsub(/╭─/, "", line); if (count > max) max=count } END { exit max == 3 ? 0 : 1 }' .ahelp-grid-3-test.txt
+	! rg -q 'COMMAND.*DESCRIPTION' .ahelp-grid-3-test.txt
 	rm -f .ahelp-workspace-test.txt .ahelp-standard-test.txt .ahelp-custom-test.txt .ahelp-full-test.txt .ahelp-grid-1-test.txt .ahelp-grid-2-test.txt .ahelp-grid-3-test.txt
 
 install: ahelp

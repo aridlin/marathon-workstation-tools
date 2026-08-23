@@ -20,11 +20,12 @@ Zsh process and list aliases, user functions, and useful unlisted executables
 found in `~/.local/bin` and `~/bin`. Newly added commands therefore remain
 visible without silently changing the curated sections.
 
-The output is a terminal-width-aware Unicode/Nerd Font grid with true-color
-panels and alternating rows. Every item is a command/description column pair.
-The renderer chooses one, two, three, or more pairs per row from the live width,
-redistributes all available cells between them, and wraps both sides. It prints
-directly by default.
+The output is a terminal-width-aware Unicode/Nerd Font note board. Every command
+is a separate rounded blob whose preferred width comes from its name and content.
+The renderer greedily packs one, two, three, or more varied cards into each row,
+keeps incomplete rows compact and centered, and lets descriptions determine card
+height. Six restrained accent/background palettes make adjacent notes distinct
+in color terminals. It prints directly by default.
 
 Use `ahelp QUERY` to filter, `ahelp -i` for interactive pager navigation, and
 `ahelp --plain` for scripting. The optional pager is configured to display

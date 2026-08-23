@@ -280,6 +280,32 @@ struct Paint {
     std::string subtle(const std::string& text) const { return code("38;2;118;172;132") + text + reset(); }
     std::string warning(const std::string& text) const { return code("1;38;2;255;113;140") + text + reset(); }
 
+    const char* blob_accent(int palette) const {
+        static const char* colors[] = {
+            "1;38;2;112;194;139", "1;38;2;91;192;211", "1;38;2;186;148;255",
+            "1;38;2;244;190;87", "1;38;2;239;121;151", "1;38;2;112;161;255",
+        };
+        return colors[palette % 6];
+    }
+
+    const char* blob_background(int palette) const {
+        static const char* colors[] = {
+            "48;2;7;31;20", "48;2;7;28;33", "48;2;24;18;42",
+            "48;2;40;29;10", "48;2;39;15;25", "48;2;13;24;45",
+        };
+        return colors[palette % 6];
+    }
+
+    std::string blob_border(const std::string& text, int palette) const {
+        return enabled ? code(blob_accent(palette)) + text + reset() : text;
+    }
+
+    std::string blob_cell(const std::string& text, int width, int palette) const {
+        const std::string padded = " " + pad_right(text, width) + " ";
+        if (!enabled) return padded;
+        return code(blob_background(palette)) + code("38;2;224;235;226") + padded + reset();
+    }
+
     std::string cell(const std::string& text, int width, bool name, bool alternate) const {
         if (!enabled) return " " + pad_right(text, width) + " ";
         const char* background = alternate ? "48;2;9;36;23" : "48;2;6;27;18";
@@ -468,133 +494,93 @@ void render_category_header(std::ostringstream& output, const Paint& paint, int 
     output << '\n' << paint.title(label + repeat("━", std::max(0, width - text_width(label)))) << '\n';
 }
 
-struct GridColumns {
-    int name = 14;
-    int description = 20;
+struct BlobCard {
+    int width = 28;
+    int palette = 0;
+    std::vector<std::string> lines;
 };
 
-std::vector<GridColumns> grid_columns(int width, std::size_t entry_count) {
-    // A pair is COMMAND + DESCRIPTION. The count grows with the live terminal,
-    // while every spare cell is redistributed instead of fixing card widths.
-    const int across = std::max(1, std::min(static_cast<int>(entry_count), width / 40));
-    const int distributable = width - 1;
-    const int base_span = distributable / across;
-    const int remainder = distributable % across;
-    std::vector<GridColumns> columns;
-    columns.reserve(static_cast<std::size_t>(across));
-    for (int index = 0; index < across; ++index) {
-        const int span = base_span + (index < remainder ? 1 : 0);
-        const int content = span - 6;
-        int name = std::clamp(content / 2, 12, 26);
-        int description = content - name;
-        if (description < 16) {
-            description = 16;
-            name = content - description;
+int blob_width(const Entry& entry, int available) {
+    const int title_width = text_width(entry.icon + "  " + entry.name) + 5;
+    const int description_width = 24 + text_width(entry.description) / 4;
+    return std::clamp(std::max(title_width, description_width),
+                      std::min(28, available), std::min(58, available));
+}
+
+int blob_palette(const Entry& entry) {
+    unsigned int hash = 2166136261u;
+    for (const unsigned char byte : entry.name) {
+        hash ^= byte;
+        hash *= 16777619u;
+    }
+    return static_cast<int>(hash % 6u);
+}
+
+BlobCard make_blob(const Entry& entry, int width, const Paint& paint) {
+    BlobCard card;
+    card.width = width;
+    card.palette = blob_palette(entry);
+    const std::string title = truncate_to(entry.icon + "  " + entry.name,
+                                          std::max(1, width - 5));
+    const std::string label = "─ " + title + " ";
+    card.lines.push_back(paint.blob_border(
+        "╭" + label + repeat("─", std::max(0, width - 2 - text_width(label))) + "╮",
+        card.palette));
+    for (const auto& line : wrap_text(entry.description, width - 4)) {
+        card.lines.push_back(paint.blob_border("│", card.palette) +
+                             paint.blob_cell(line, width - 4, card.palette) +
+                             paint.blob_border("│", card.palette));
+    }
+    card.lines.push_back(paint.blob_border("╰" + repeat("─", width - 2) + "╯",
+                                           card.palette));
+    return card;
+}
+
+void render_blob_row(std::ostringstream& output, const Paint& paint, int available,
+                     const std::vector<std::pair<const Entry*, int>>& planned) {
+    std::vector<BlobCard> cards;
+    int used = 0;
+    std::size_t height = 0;
+    for (const auto& [entry, width] : planned) {
+        cards.push_back(make_blob(*entry, width, paint));
+        used += width;
+        height = std::max(height, cards.back().lines.size());
+    }
+    used += std::max(0, static_cast<int>(cards.size()) - 1) * 2;
+    const int indent = std::max(0, (available - used) / 2);
+    for (std::size_t line = 0; line < height; ++line) {
+        output << std::string(static_cast<std::size_t>(indent), ' ');
+        for (std::size_t card = 0; card < cards.size(); ++card) {
+            if (line < cards[card].lines.size()) output << cards[card].lines[line];
+            else output << std::string(static_cast<std::size_t>(cards[card].width), ' ');
+            if (card + 1 < cards.size()) output << "  ";
         }
-        columns.push_back({name, description});
+        output << '\n';
     }
-    return columns;
-}
-
-std::string grid_rule(const std::vector<GridColumns>& columns,
-                      const std::string& left, const std::string& joint,
-                      const std::string& right) {
-    std::string line = left;
-    for (std::size_t index = 0; index < columns.size(); ++index) {
-        line += repeat("─", columns[index].name + 2);
-        line += joint;
-        line += repeat("─", columns[index].description + 2);
-        line += index + 1 == columns.size() ? right : joint;
-    }
-    return line;
-}
-
-std::string take_identifier_chunk(std::string& remaining, int width) {
-    if (text_width(remaining) <= width) {
-        std::string chunk = remaining;
-        remaining.clear();
-        return chunk;
-    }
-    std::string chunk = truncate_to(remaining, width);
-    if (chunk.size() >= 3 && chunk.ends_with("…")) chunk.resize(chunk.size() - 3);
-    const std::size_t natural = chunk.find_last_of("-_./");
-    if (natural != std::string::npos && natural + 1 >= chunk.size() / 2) {
-        chunk.resize(natural + 1);
-    }
-    if (chunk.empty()) {
-        chunk = remaining.substr(0, 1);
-    }
-    remaining.erase(0, chunk.size());
-    return chunk;
-}
-
-std::vector<std::string> wrap_command(const Entry& entry, int width) {
-    std::vector<std::string> lines;
-    std::string remaining = entry.name;
-    const int icon_cells = text_width(entry.icon) + 2;
-    lines.push_back(entry.icon + "  " +
-                    take_identifier_chunk(remaining, std::max(4, width - icon_cells)));
-    while (!remaining.empty()) lines.push_back(take_identifier_chunk(remaining, width));
-    return lines;
 }
 
 void render_section(std::ostringstream& output, const Paint& paint, int width,
                     const std::string& title, const std::vector<Entry>& entries) {
     if (entries.empty()) return;
-    const auto columns = grid_columns(width, entries.size());
-    const std::size_t across = columns.size();
     output << '\n' << paint.border(titled_border("╭", "╮", title + "  " +
                                                     std::to_string(entries.size()), width))
-           << '\n';
-    output << paint.border(grid_rule(columns, "├", "┬", "┤")) << '\n';
-    output << paint.border("│");
-    for (const auto& column : columns) {
-        output << paint.cell("COMMAND", column.name, true, false)
-               << paint.border("│")
-               << paint.cell("DESCRIPTION", column.description, true, false)
-               << paint.border("│");
-    }
-    output << '\n' << paint.border(grid_rule(columns, "├", "┼", "┤")) << '\n';
+           << "\n\n";
 
-    const std::size_t row_count = (entries.size() + across - 1) / across;
-    for (std::size_t row = 0; row < row_count; ++row) {
-        std::vector<std::vector<std::string>> names(across);
-        std::vector<std::vector<std::string>> descriptions(across);
-        std::size_t row_height = 1;
-        for (std::size_t card = 0; card < across; ++card) {
-            const std::size_t entry_index = row * across + card;
-            if (entry_index >= entries.size()) {
-                names[card] = {""};
-                descriptions[card] = {""};
-                continue;
-            }
-            names[card] = wrap_command(entries[entry_index], columns[card].name);
-            descriptions[card] = wrap_text(entries[entry_index].description,
-                                           columns[card].description);
-            row_height = std::max(row_height, std::max(names[card].size(),
-                                                       descriptions[card].size()));
-        }
-
-        const bool alternate = row % 2 != 0;
-        for (std::size_t line = 0; line < row_height; ++line) {
-            output << paint.border("│");
-            for (std::size_t card = 0; card < across; ++card) {
-                const std::string name = line < names[card].size() ? names[card][line] : "";
-                const std::string description = line < descriptions[card].size()
-                                                    ? descriptions[card][line]
-                                                    : "";
-                output << paint.cell(name, columns[card].name, true, alternate)
-                       << paint.border("│")
-                       << paint.cell(description, columns[card].description, false, alternate)
-                       << paint.border("│");
-            }
+    std::vector<std::pair<const Entry*, int>> row;
+    int used = 0;
+    for (const auto& entry : entries) {
+        const int preferred = blob_width(entry, width);
+        const int next_used = row.empty() ? preferred : used + 2 + preferred;
+        if (!row.empty() && next_used > width) {
+            render_blob_row(output, paint, width, row);
             output << '\n';
+            row.clear();
+            used = 0;
         }
-        if (row + 1 < row_count) {
-            output << paint.border(grid_rule(columns, "├", "┼", "┤")) << '\n';
-        }
+        row.emplace_back(&entry, preferred);
+        used = row.size() == 1 ? preferred : used + 2 + preferred;
     }
-    output << paint.border(grid_rule(columns, "╰", "┴", "╯")) << '\n';
+    if (!row.empty()) render_blob_row(output, paint, width, row);
 }
 
 void write_output(const std::string& output, bool use_pager) {
