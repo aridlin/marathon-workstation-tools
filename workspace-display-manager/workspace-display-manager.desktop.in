@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Workspace Display Layout
+Comment=Choose Hyprland display order and 2D workspace ownership
+Exec=@HOME@/.local/bin/workspace-display-manager
+Icon=workspace-display-manager
+Terminal=false
+Type=Application
+Categories=Settings;DesktopSettings;
+Keywords=display;monitor;workspace;hyprland;layout;
+StartupNotify=true

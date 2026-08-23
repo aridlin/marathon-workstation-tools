@@ -1,0 +1,6 @@
+ahelp/ahelp
+workspace-field/workspace-field
+workspace-display-manager/workspace-display-manager
+*.o
+*.log
+.cache/
