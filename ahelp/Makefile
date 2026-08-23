@@ -10,14 +10,21 @@ ahelp: main.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 test: ahelp
-	./ahelp --plain --no-pager workspace > /tmp/ahelp-workspace-test.txt
-	rg -q 'workspace-display-manager' /tmp/ahelp-workspace-test.txt
-	rg -q 'workspace-field' /tmp/ahelp-workspace-test.txt
-	./ahelp --plain --no-pager cp1 > /tmp/ahelp-cp1-test.txt
-	rg -q 'cp1-notif' /tmp/ahelp-cp1-test.txt
-	./ahelp --plain --no-pager overcalc > /tmp/ahelp-overcalc-test.txt
-	rg -q 'overcalc' /tmp/ahelp-overcalc-test.txt
-	rm -f /tmp/ahelp-workspace-test.txt /tmp/ahelp-cp1-test.txt /tmp/ahelp-overcalc-test.txt
+	./ahelp --plain --no-pager workspace > .ahelp-workspace-test.txt
+	rg -q 'CUSTOM-BUILT UTILITIES' .ahelp-workspace-test.txt
+	rg -q 'workspace-display-manager' .ahelp-workspace-test.txt
+	rg -q 'workspace-field' .ahelp-workspace-test.txt
+	./ahelp --plain --no-pager flameshot > .ahelp-standard-test.txt
+	rg -q 'STANDARD / EXTERNAL COMMANDS' .ahelp-standard-test.txt
+	rg -q 'DESKTOP & CAPTURE' .ahelp-standard-test.txt
+	rg -q 'flameshot' .ahelp-standard-test.txt
+	./ahelp --plain --no-pager wemote > .ahelp-custom-test.txt
+	rg -q 'CUSTOM-BUILT UTILITIES' .ahelp-custom-test.txt
+	rg -q 'TERMINAL & CONTENT' .ahelp-custom-test.txt
+	rg -q 'wemote' .ahelp-custom-test.txt
+	./ahelp --plain --no-pager > .ahelp-full-test.txt
+	! rg -q 'rat-quest-unblock-notify|__pycache__| pn | pnpx | pnx ' .ahelp-full-test.txt
+	rm -f .ahelp-workspace-test.txt .ahelp-standard-test.txt .ahelp-custom-test.txt .ahelp-full-test.txt
 
 install: ahelp
 	install -Dm755 ahelp $(HOME)/.local/bin/ahelp

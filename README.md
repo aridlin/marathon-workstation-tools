@@ -13,7 +13,7 @@ fast startup, and graceful behavior when optional desktop components are absent.
 
 | Tool | Purpose | Implementation |
 | --- | --- | --- |
-| `ahelp` | Attractive terminal-sized personal command reference with a fixed curated table and separate live-discovery sections | C++20, ANSI truecolor, Unicode/Nerd Font |
+| `ahelp` | Attractive terminal-sized command reference split into standard/external, custom-built, and live-discovery sections | C++20, ANSI truecolor, Unicode/Nerd Font |
 | `workspace-field` | Floating 10x10 Hyprland workspace overview with application icons, badges, keyboard navigation, and fast warm activation | C++20, GTK3, Cairo, JSON-GLib |
 | `workspace-display-manager` | GUI for display order/main-display selection, deterministic workspace partitioning, generated Hyprland rules, and hotplug repair | C++20, GTK3, JSON-GLib, Hyprland socket2 IPC |
 | workspace scripts | Main/sub navigation, window movement, per-monitor memory, Waybar data, and generated workspace ownership | Bash, `hyprctl`, `jq` |
@@ -99,19 +99,26 @@ reloads when the generated file is unchanged.
 
 ## ahelp
 
-`ahelp` is intentionally curated first and dynamic second.
+`ahelp` is intentionally organized first and dynamic second. Its stable,
+hand-ordered reference separates installed external applications from
+custom-built workstation utilities:
 
-The first section is a stable, hand-ordered list of personal commands. Each
-entry has an individual contextual Nerd Font icon and a human description.
-The following sections are explicitly labeled dynamic and contain:
+- **Standard / external commands** — AI/development/data, desktop/capture,
+  system/connectivity, and games/compatibility.
+- **Custom-built utilities** — terminal/content, workspaces/Wayland,
+  files/packages/processes, and network/homelab.
+
+Each entry has a contextual Nerd Font icon and a human description. One-off job
+helpers, redundant wrappers, and non-command directory entries are deliberately
+excluded. The following sections are explicitly labeled dynamic and contain:
 
 - aliases sourced from `~/.zshrc`;
 - user functions whose source is `~/.zshrc`;
 - executable files discovered in `~/.local/bin` or `~/bin` that are not already
   in the curated table.
 
-The shell scan runs in an isolated non-interactive Zsh child process. The
-primary list therefore remains deliberate while new commands are still visible.
+The shell scan runs in an isolated non-interactive Zsh child process. The fixed
+categories therefore remain deliberate while new commands are still visible.
 
 Usage:
 
@@ -131,8 +138,10 @@ The renderer adapts to terminal width:
 - Private Use Area glyphs are marked printable for the optional `less` pager,
   preventing `<U+F...>` escapes.
 
-To change the fixed personal list, edit `kCuratedCommands` in
-`ahelp/main.cpp`. Dynamic discoveries do not mutate that list.
+To change the fixed reference, edit `kStandardCommands` or `kCustomCommands` in
+`ahelp/main.cpp`. Add one-off names to `kIgnoredDynamicCommands` when they should
+not reappear through live discovery. Dynamic discoveries do not mutate either
+curated list.
 
 ## Dependencies
 

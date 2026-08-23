@@ -35,6 +35,12 @@ struct Entry {
     std::string icon;
 };
 
+struct CommandSubcategory {
+    std::string title;
+    std::string icon;
+    std::vector<Entry> entries;
+};
+
 struct Terminal {
     int width = 96;
     int height = 30;
@@ -50,45 +56,75 @@ const std::unordered_map<std::string, std::string> kFunctionDescriptions = {
     {"ytmp", "Download audio as MP3 into ~/Downloads with yt-dlp."},
 };
 
-const std::vector<Entry> kCuratedCommands = {
-    {"ahelp", "Show this polished personal command reference.", "󰋖"},
+const std::vector<CommandSubcategory> kStandardCommands = {
+    {"AI, DEVELOPMENT & DATA", "󰧑", {
     {"codex", "OpenAI Codex terminal agent.", "󰚩"},
-    {"cp1-notif", "Render notifications and print them on a Paperang CP1 thermal printer.", "󰐪"},
     {"datasette", "Explore and publish SQLite databases through a web interface.", ""},
-    {"fckmpeg", "Guided CLI/TUI media converter with terminal previews.", "󰈙"},
-    {"flashpoint", "Launch the local Flashpoint web-game archive.", "󰈸"},
-    {"gameconqueror", "Launch the GameConqueror memory scanner.", "󰮂"},
     {"harlequin", "Terminal SQL IDE and database client.", "󰆼"},
-    {"hypr-marathon-nested", "Start the Marathon Hyprland profile nested inside this session.", ""},
-    {"hypr-marathon-session", "Start the full Marathon Hyprland login session.", "󰍹"},
-    {"hyprshade", "Manage Hyprland screen shaders.", "󰖨"},
-    {"igpu-watch", "Monitor Intel integrated-GPU activity.", "󰢮"},
-    {"mdunicode", "Convert Markdown, Discord formatting, LaTeX, and math into Unicode.", "󰗊"},
-    {"overcalc", "Evaluate rich math with Unicode, LaTeX, steps, JSON, and derivatives.", "󰃬"},
-    {"pn", "Fast JavaScript package-manager launcher.", "󰎙"},
     {"pnpm", "Fast, disk-efficient JavaScript package manager.", ""},
-    {"pnpx", "Run packages through pnpm without a permanent install.", "󰜎"},
-    {"pnx", "Short package-execution wrapper.", "󰐕"},
-    {"proliant-overflow-finalize", "Finalize resumable overflow transfers to the ProLiant media store.", "󰒋"},
-    {"proliant-tv-copy", "Copy TV media safely to the ProLiant storage layout.", "󰎁"},
-    {"rat-quest-unblock-notify", "Check Rat Quest availability and send its configured notification.", "󰇼"},
     {"uv", "Fast Python project and package manager.", ""},
     {"uvx", "Run Python tools in disposable uv environments.", "󰏗"},
+    }},
+    {"DESKTOP & CAPTURE", "󰍹", {
+    {"firefox", "Firefox web browser.", "󰈹"},
+    {"flameshot", "Capture, annotate, and copy screenshots.", "󰹑"},
+    {"ghostty", "GPU-accelerated terminal emulator.", "󰊠"},
+    {"walker", "Fast Wayland application launcher.", "󰍉"},
+    }},
+    {"SYSTEM & CONNECTIVITY", "󰒋", {
+    {"btop", "Interactive system and process monitor.", ""},
+    {"nmtui", "NetworkManager terminal interface.", "󰤨"},
+    {"syncthing", "Peer-to-peer file synchronization service.", "󰓦"},
+    }},
+    {"GAMES & COMPATIBILITY", "󰊗", {
+    {"flashpoint", "Launch the local Flashpoint web-game archive.", "󰈸"},
+    {"gameconqueror", "Launch the GameConqueror memory scanner.", "󰮂"},
+    {"hyprshade", "Manage Hyprland screen shaders.", "󰖨"},
+    }},
+};
+
+const std::vector<CommandSubcategory> kCustomCommands = {
+    {"TERMINAL & CONTENT", "󰆍", {
+    {"ahelp", "Show this polished personal command reference.", "󰋖"},
+    {"cp1-notif", "Render notifications and print them on a Paperang CP1 thermal printer.", "󰐪"},
+    {"fckmpeg", "Guided CLI/TUI media converter with terminal previews.", "󰈙"},
+    {"mdunicode", "Convert Markdown, Discord formatting, LaTeX, and math into Unicode.", "󰗊"},
+    {"overcalc", "Evaluate rich math with Unicode, LaTeX, steps, JSON, and derivatives.", "󰃬"},
+    {"wemote", "Search and insert emoji from the terminal.", "󰞅"},
+    }},
+    {"WORKSPACES & WAYLAND", "", {
+    {"hypr-marathon-nested", "Start the Marathon Hyprland profile nested inside this session.", "󰖲"},
+    {"hypr-marathon-session", "Start the full Marathon Hyprland login session.", "󰍹"},
+    {"igpu-watch", "Monitor Intel integrated-GPU activity.", "󰢮"},
     {"waydroid-phone-multitouch.py", "Forward Android multitouch events into a Waydroid touchscreen device.", ""},
     {"wayfreeze", "Freeze a Wayland screen region for inspection.", "󰜺"},
-    {"wchmod", "Interactive file-permission picker.", "󰌾"},
-    {"wemote", "Search and insert emoji from the terminal.", "󰞅"},
-    {"wfind", "Interactive recursive file and directory finder.", "󰍉"},
-    {"wmount", "Interactive removable-volume mount and unmount tool.", "󰋊"},
     {"workspace-display-manager", "Choose display order and main output for the 2D workspace grid.", "󰹑"},
     {"workspace-field", "Open the fast graphical 10x10 Hyprland workspace field.", "󰆾"},
+    }},
+    {"FILES, PACKAGES & PROCESSES", "󰉋", {
+    {"wchmod", "Interactive file-permission picker.", "󰌾"},
+    {"wfind", "Interactive recursive file and directory finder.", "󰍉"},
+    {"wmount", "Interactive removable-volume mount and unmount tool.", "󰋊"},
     {"wparu", "Interactive package search, install, and removal frontend for paru.", ""},
     {"wproc", "Interactive process browser and signal sender.", "󰄉"},
-    {"wserve", "Serve the current directory with a practical browser file interface.", "󰒍"},
-    {"wssh", "Choose and connect to hosts from ~/.ssh/config.", "󰣀"},
     {"wtar", "Interactive tar archive creator.", "󰗄"},
     {"wvenv", "Create, enter, and manage a project Python virtual environment.", "󰆧"},
     {"wzip", "Interactive ZIP archive creator.", "󰿺"},
+    }},
+    {"NETWORK & HOMELAB", "󰒍", {
+    {"proliant-overflow-finalize", "Finalize resumable overflow transfers to the ProLiant media store.", "󰒋"},
+    {"proliant-tv-copy", "Copy TV media safely to the ProLiant storage layout.", "󰎁"},
+    {"wserve", "Serve the current directory with a practical browser file interface.", "󰒍"},
+    {"wssh", "Choose and connect to hosts from ~/.ssh/config.", "󰣀"},
+    }},
+};
+
+const std::set<std::string> kIgnoredDynamicCommands = {
+    "__pycache__",
+    "pn",
+    "pnpx",
+    "pnx",
+    "rat-quest-unblock-notify",
 };
 
 std::string home_directory() {
@@ -353,7 +389,11 @@ std::string dynamic_icon(const std::string& name, const fs::path& path) {
 std::vector<Entry> collect_dynamic_commands() {
     std::map<std::string, fs::path> paths;
     std::set<std::string> curated_names;
-    for (const auto& entry : kCuratedCommands) curated_names.insert(entry.name);
+    for (const auto* categories : {&kStandardCommands, &kCustomCommands}) {
+        for (const auto& category : *categories) {
+            for (const auto& entry : category.entries) curated_names.insert(entry.name);
+        }
+    }
     for (const fs::path& directory : {fs::path(home_directory()) / ".local/bin",
                                       fs::path(home_directory()) / "bin"}) {
         std::error_code error;
@@ -361,7 +401,10 @@ std::vector<Entry> collect_dynamic_commands() {
         for (const auto& item : fs::directory_iterator(directory, error)) {
             const std::string name = item.path().filename().string();
             if (name.empty() || name.front() == '.') continue;
+            if (kIgnoredDynamicCommands.contains(name)) continue;
             if (curated_names.contains(name)) continue;
+            const auto status = item.symlink_status(error);
+            if (error || (!fs::is_regular_file(status) && !fs::is_symlink(status))) continue;
             if (access(item.path().c_str(), X_OK) == 0) paths.emplace(name, item.path());
         }
     }
@@ -387,22 +430,31 @@ std::string titled_border(const std::string& left, const std::string& right,
 }
 
 void render_banner(std::ostringstream& output, const Paint& paint, int width,
-                   std::size_t curated, std::size_t aliases, std::size_t functions,
+                   std::size_t standard, std::size_t custom,
+                   std::size_t aliases, std::size_t functions,
                    std::size_t discovered,
                    const std::string& query) {
     output << paint.border(titled_border("╭", "╮", "  AHELP · LIVE WORKSTATION INDEX", width)) << '\n';
-    const std::string summary = "󰋖  " + std::to_string(curated) + " curated    󰘳  " +
+    const std::string summary = "󰏗  " + std::to_string(standard) + " standard    󰋖  " +
+                                std::to_string(custom) + " custom    󰘳  " +
                                 std::to_string(aliases) + " aliases    󰊕  " +
                                 std::to_string(functions) + " functions    󰌷  " +
                                 std::to_string(discovered) + " new";
     output << paint.border("│") << paint.cell(summary, width - 4, true, false)
            << paint.border("│") << '\n';
     std::string source = query.empty()
-                             ? "curated personal list first · live discoveries below"
-                             : "filter: “" + query + "” · curated and live sections";
+                             ? "organized reference first · live discoveries below"
+                             : "filter: “" + query + "” · organized and live sections";
     output << paint.border("│") << paint.cell(source, width - 4, false, true)
            << paint.border("│") << '\n';
     output << paint.border("╰" + repeat("─", width - 2) + "╯") << '\n';
+}
+
+void render_category_header(std::ostringstream& output, const Paint& paint, int width,
+                            const std::string& icon, const std::string& title,
+                            std::size_t count) {
+    const std::string label = "━━ " + icon + "  " + title + " · " + std::to_string(count) + " ";
+    output << '\n' << paint.title(label + repeat("━", std::max(0, width - text_width(label)))) << '\n';
 }
 
 void render_section(std::ostringstream& output, const Paint& paint, int width,
@@ -494,7 +546,8 @@ int main(int argc, char** argv) {
     }
 
     int shell_status = 0;
-    std::vector<Entry> curated = kCuratedCommands;
+    std::vector<CommandSubcategory> standard = kStandardCommands;
+    std::vector<CommandSubcategory> custom = kCustomCommands;
     std::vector<Entry> aliases;
     std::vector<Entry> functions;
     collect_shell(aliases, functions, shell_status);
@@ -505,24 +558,64 @@ int main(int argc, char** argv) {
                                      [&](const Entry& entry) { return !matches(entry, query); }),
                       entries.end());
     };
-    filter(curated);
+    const auto filter_categories = [&](std::vector<CommandSubcategory>& categories) {
+        for (auto& category : categories) {
+            if (!query.empty() && lower(category.title).find(query) != std::string::npos) continue;
+            filter(category.entries);
+        }
+        categories.erase(std::remove_if(categories.begin(), categories.end(),
+                                        [](const CommandSubcategory& category) {
+                                            return category.entries.empty();
+                                        }),
+                         categories.end());
+    };
+    const auto category_count = [](const std::vector<CommandSubcategory>& categories) {
+        std::size_t count = 0;
+        for (const auto& category : categories) count += category.entries.size();
+        return count;
+    };
+    filter_categories(standard);
+    filter_categories(custom);
     filter(aliases);
     filter(functions);
     filter(discovered);
 
+    const std::size_t standard_count = category_count(standard);
+    const std::size_t custom_count = category_count(custom);
+    const std::size_t dynamic_count = aliases.size() + functions.size() + discovered.size();
+
     const Terminal terminal = terminal_info(plain);
     const Paint paint{terminal.color};
     std::ostringstream output;
-    render_banner(output, paint, terminal.width, curated.size(), aliases.size(),
-                  functions.size(), discovered.size(), query);
-    render_section(output, paint, terminal.width, "󰋖  CURATED PERSONAL COMMANDS", curated);
-    render_section(output, paint, terminal.width, "󰘳  DYNAMIC · ZSH ALIASES", aliases);
-    render_section(output, paint, terminal.width, "󰊕  DYNAMIC · ZSH FUNCTIONS", functions);
-    render_section(output, paint, terminal.width, "󰌷  DYNAMIC · UNLISTED EXECUTABLES", discovered);
+    render_banner(output, paint, terminal.width, standard_count, custom_count,
+                  aliases.size(), functions.size(), discovered.size(), query);
+    if (standard_count > 0) {
+        render_category_header(output, paint, terminal.width, "󰏗", "STANDARD / EXTERNAL COMMANDS",
+                               standard_count);
+        for (const auto& category : standard) {
+            render_section(output, paint, terminal.width,
+                           category.icon + "  " + category.title, category.entries);
+        }
+    }
+    if (custom_count > 0) {
+        render_category_header(output, paint, terminal.width, "󰋖", "CUSTOM-BUILT UTILITIES",
+                               custom_count);
+        for (const auto& category : custom) {
+            render_section(output, paint, terminal.width,
+                           category.icon + "  " + category.title, category.entries);
+        }
+    }
+    if (dynamic_count > 0) {
+        render_category_header(output, paint, terminal.width, "󰌷", "DYNAMIC DISCOVERY",
+                               dynamic_count);
+        render_section(output, paint, terminal.width, "󰘳  ZSH ALIASES", aliases);
+        render_section(output, paint, terminal.width, "󰊕  ZSH FUNCTIONS", functions);
+        render_section(output, paint, terminal.width, "󰌷  UNLISTED EXECUTABLES", discovered);
+    }
     if (shell_status != 0) {
         output << '\n' << paint.warning("⚠ Zsh scan exited with status " + std::to_string(shell_status)) << '\n';
     }
-    if (curated.empty() && aliases.empty() && functions.empty() && discovered.empty()) {
+    if (standard_count == 0 && custom_count == 0 && dynamic_count == 0) {
         output << '\n' << paint.warning("󰅙  No command matched “" + query + "”.") << '\n';
     }
     output << '\n';
