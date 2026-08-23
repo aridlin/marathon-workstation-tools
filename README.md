@@ -106,11 +106,13 @@ custom-built workstation utilities:
 - **Standard / external commands** — AI/development/data, desktop/capture,
   system/connectivity, and games/compatibility.
 - **Custom-built utilities** — terminal/content, workspaces/Wayland,
-  files/packages/processes, and network/homelab.
+  files/packages/processes, and networking.
 
-Each entry has a contextual Nerd Font icon and a human description. One-off job
-helpers, redundant wrappers, and non-command directory entries are deliberately
-excluded. The following sections are explicitly labeled dynamic and contain:
+Entries are ordered by practical usefulness/frequency, not alphabet. Each has a
+contextual Nerd Font icon and a human description. One-off transfer/notifier
+jobs, including `proliant-*` and `rat-quest-*`, redundant wrappers, and
+non-command directory entries are deliberately excluded from both curated and
+dynamic output. The following sections are explicitly labeled dynamic and contain:
 
 - aliases sourced from `~/.zshrc`;
 - user functions whose source is `~/.zshrc`;
@@ -131,17 +133,19 @@ ahelp --plain          # no ANSI color, suitable for scripts/logs
 
 The renderer adapts to terminal width:
 
-- wide terminals get aligned command/description columns;
-- narrow terminals get stacked command cards;
-- descriptions wrap by visible cell width;
+- every grid item is a command/description column pair;
+- the live width selects one, two, three, or more pairs per row;
+- all available cells are redistributed rather than using fixed card widths;
+- command names and descriptions wrap by visible cell width;
 - tables use alternating truecolor rows;
 - Private Use Area glyphs are marked printable for the optional `less` pager,
   preventing `<U+F...>` escapes.
 
 To change the fixed reference, edit `kStandardCommands` or `kCustomCommands` in
 `ahelp/main.cpp`. Add one-off names to `kIgnoredDynamicCommands` when they should
-not reappear through live discovery. Dynamic discoveries do not mutate either
-curated list.
+not reappear through live discovery, or use `kIgnoredDynamicPrefixes` for a
+whole temporary helper family. Dynamic discoveries do not mutate either curated
+list.
 
 ## Dependencies
 

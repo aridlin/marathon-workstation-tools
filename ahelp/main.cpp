@@ -59,17 +59,17 @@ const std::unordered_map<std::string, std::string> kFunctionDescriptions = {
 const std::vector<CommandSubcategory> kStandardCommands = {
     {"AI, DEVELOPMENT & DATA", "󰧑", {
     {"codex", "OpenAI Codex terminal agent.", "󰚩"},
-    {"datasette", "Explore and publish SQLite databases through a web interface.", ""},
-    {"harlequin", "Terminal SQL IDE and database client.", "󰆼"},
     {"pnpm", "Fast, disk-efficient JavaScript package manager.", ""},
     {"uv", "Fast Python project and package manager.", ""},
     {"uvx", "Run Python tools in disposable uv environments.", "󰏗"},
+    {"harlequin", "Terminal SQL IDE and database client.", "󰆼"},
+    {"datasette", "Explore and publish SQLite databases through a web interface.", ""},
     }},
     {"DESKTOP & CAPTURE", "󰍹", {
     {"firefox", "Firefox web browser.", "󰈹"},
-    {"flameshot", "Capture, annotate, and copy screenshots.", "󰹑"},
-    {"ghostty", "GPU-accelerated terminal emulator.", "󰊠"},
     {"walker", "Fast Wayland application launcher.", "󰍉"},
+    {"ghostty", "GPU-accelerated terminal emulator.", "󰊠"},
+    {"flameshot", "Capture, annotate, and copy screenshots.", "󰹑"},
     }},
     {"SYSTEM & CONNECTIVITY", "󰒋", {
     {"btop", "Interactive system and process monitor.", ""},
@@ -86,36 +86,34 @@ const std::vector<CommandSubcategory> kStandardCommands = {
 const std::vector<CommandSubcategory> kCustomCommands = {
     {"TERMINAL & CONTENT", "󰆍", {
     {"ahelp", "Show this polished personal command reference.", "󰋖"},
-    {"cp1-notif", "Render notifications and print them on a Paperang CP1 thermal printer.", "󰐪"},
-    {"fckmpeg", "Guided CLI/TUI media converter with terminal previews.", "󰈙"},
-    {"mdunicode", "Convert Markdown, Discord formatting, LaTeX, and math into Unicode.", "󰗊"},
     {"overcalc", "Evaluate rich math with Unicode, LaTeX, steps, JSON, and derivatives.", "󰃬"},
+    {"mdunicode", "Convert Markdown, Discord formatting, LaTeX, and math into Unicode.", "󰗊"},
+    {"fckmpeg", "Guided CLI/TUI media converter with terminal previews.", "󰈙"},
     {"wemote", "Search and insert emoji from the terminal.", "󰞅"},
+    {"cp1-notif", "Render notifications and print them on a Paperang CP1 thermal printer.", "󰐪"},
     }},
     {"WORKSPACES & WAYLAND", "", {
-    {"hypr-marathon-nested", "Start the Marathon Hyprland profile nested inside this session.", "󰖲"},
-    {"hypr-marathon-session", "Start the full Marathon Hyprland login session.", "󰍹"},
-    {"igpu-watch", "Monitor Intel integrated-GPU activity.", "󰢮"},
-    {"waydroid-phone-multitouch.py", "Forward Android multitouch events into a Waydroid touchscreen device.", ""},
-    {"wayfreeze", "Freeze a Wayland screen region for inspection.", "󰜺"},
-    {"workspace-display-manager", "Choose display order and main output for the 2D workspace grid.", "󰹑"},
     {"workspace-field", "Open the fast graphical 10x10 Hyprland workspace field.", "󰆾"},
+    {"workspace-display-manager", "Choose display order and main output for the 2D workspace grid.", "󰹑"},
+    {"wayfreeze", "Freeze a Wayland screen region for inspection.", "󰜺"},
+    {"igpu-watch", "Monitor Intel integrated-GPU activity.", "󰢮"},
+    {"hypr-marathon-session", "Start the full Marathon Hyprland login session.", "󰍹"},
+    {"hypr-marathon-nested", "Start the Marathon Hyprland profile nested inside this session.", "󰖲"},
+    {"waydroid-phone-multitouch.py", "Forward Android multitouch events into a Waydroid touchscreen device.", ""},
     }},
     {"FILES, PACKAGES & PROCESSES", "󰉋", {
-    {"wchmod", "Interactive file-permission picker.", "󰌾"},
     {"wfind", "Interactive recursive file and directory finder.", "󰍉"},
-    {"wmount", "Interactive removable-volume mount and unmount tool.", "󰋊"},
     {"wparu", "Interactive package search, install, and removal frontend for paru.", ""},
     {"wproc", "Interactive process browser and signal sender.", "󰄉"},
+    {"wmount", "Interactive removable-volume mount and unmount tool.", "󰋊"},
+    {"wzip", "Interactive ZIP archive creator.", "󰿺"},
     {"wtar", "Interactive tar archive creator.", "󰗄"},
     {"wvenv", "Create, enter, and manage a project Python virtual environment.", "󰆧"},
-    {"wzip", "Interactive ZIP archive creator.", "󰿺"},
+    {"wchmod", "Interactive file-permission picker.", "󰌾"},
     }},
-    {"NETWORK & HOMELAB", "󰒍", {
-    {"proliant-overflow-finalize", "Finalize resumable overflow transfers to the ProLiant media store.", "󰒋"},
-    {"proliant-tv-copy", "Copy TV media safely to the ProLiant storage layout.", "󰎁"},
-    {"wserve", "Serve the current directory with a practical browser file interface.", "󰒍"},
+    {"NETWORK", "󰒍", {
     {"wssh", "Choose and connect to hosts from ~/.ssh/config.", "󰣀"},
+    {"wserve", "Serve the current directory with a practical browser file interface.", "󰒍"},
     }},
 };
 
@@ -124,8 +122,21 @@ const std::set<std::string> kIgnoredDynamicCommands = {
     "pn",
     "pnpx",
     "pnx",
+    "proliant-overflow-finalize",
+    "proliant-tv-copy",
     "rat-quest-unblock-notify",
 };
+
+const std::vector<std::string> kIgnoredDynamicPrefixes = {
+    "proliant-",
+    "rat-quest-",
+};
+
+bool ignored_dynamic_command(const std::string& name) {
+    if (kIgnoredDynamicCommands.contains(name)) return true;
+    return std::any_of(kIgnoredDynamicPrefixes.begin(), kIgnoredDynamicPrefixes.end(),
+                       [&](const std::string& prefix) { return name.starts_with(prefix); });
+}
 
 std::string home_directory() {
     if (const char* home = std::getenv("HOME")) return home;
@@ -252,7 +263,7 @@ Terminal terminal_info(bool plain) {
     } else if (const char* columns = std::getenv("COLUMNS")) {
         terminal.width = std::max(40, std::atoi(columns));
     }
-    terminal.width = std::clamp(terminal.width, 42, 160);
+    terminal.width = std::clamp(terminal.width, 42, 320);
     const char* term = std::getenv("TERM");
     terminal.color = !plain && isatty(STDOUT_FILENO) && !std::getenv("NO_COLOR") &&
                      (!term || std::strcmp(term, "dumb") != 0);
@@ -401,7 +412,7 @@ std::vector<Entry> collect_dynamic_commands() {
         for (const auto& item : fs::directory_iterator(directory, error)) {
             const std::string name = item.path().filename().string();
             if (name.empty() || name.front() == '.') continue;
-            if (kIgnoredDynamicCommands.contains(name)) continue;
+            if (ignored_dynamic_command(name)) continue;
             if (curated_names.contains(name)) continue;
             const auto status = item.symlink_status(error);
             if (error || (!fs::is_regular_file(status) && !fs::is_symlink(status))) continue;
@@ -425,7 +436,7 @@ std::vector<Entry> collect_dynamic_commands() {
 
 std::string titled_border(const std::string& left, const std::string& right,
                           const std::string& title, int width) {
-    const std::string label = "─ " + title + " ";
+    const std::string label = "─ " + truncate_to(title, std::max(1, width - 5)) + " ";
     return left + label + repeat("─", std::max(0, width - 2 - text_width(label))) + right;
 }
 
@@ -457,55 +468,133 @@ void render_category_header(std::ostringstream& output, const Paint& paint, int 
     output << '\n' << paint.title(label + repeat("━", std::max(0, width - text_width(label)))) << '\n';
 }
 
+struct GridColumns {
+    int name = 14;
+    int description = 20;
+};
+
+std::vector<GridColumns> grid_columns(int width, std::size_t entry_count) {
+    // A pair is COMMAND + DESCRIPTION. The count grows with the live terminal,
+    // while every spare cell is redistributed instead of fixing card widths.
+    const int across = std::max(1, std::min(static_cast<int>(entry_count), width / 40));
+    const int distributable = width - 1;
+    const int base_span = distributable / across;
+    const int remainder = distributable % across;
+    std::vector<GridColumns> columns;
+    columns.reserve(static_cast<std::size_t>(across));
+    for (int index = 0; index < across; ++index) {
+        const int span = base_span + (index < remainder ? 1 : 0);
+        const int content = span - 6;
+        int name = std::clamp(content / 2, 12, 26);
+        int description = content - name;
+        if (description < 16) {
+            description = 16;
+            name = content - description;
+        }
+        columns.push_back({name, description});
+    }
+    return columns;
+}
+
+std::string grid_rule(const std::vector<GridColumns>& columns,
+                      const std::string& left, const std::string& joint,
+                      const std::string& right) {
+    std::string line = left;
+    for (std::size_t index = 0; index < columns.size(); ++index) {
+        line += repeat("─", columns[index].name + 2);
+        line += joint;
+        line += repeat("─", columns[index].description + 2);
+        line += index + 1 == columns.size() ? right : joint;
+    }
+    return line;
+}
+
+std::string take_identifier_chunk(std::string& remaining, int width) {
+    if (text_width(remaining) <= width) {
+        std::string chunk = remaining;
+        remaining.clear();
+        return chunk;
+    }
+    std::string chunk = truncate_to(remaining, width);
+    if (chunk.size() >= 3 && chunk.ends_with("…")) chunk.resize(chunk.size() - 3);
+    const std::size_t natural = chunk.find_last_of("-_./");
+    if (natural != std::string::npos && natural + 1 >= chunk.size() / 2) {
+        chunk.resize(natural + 1);
+    }
+    if (chunk.empty()) {
+        chunk = remaining.substr(0, 1);
+    }
+    remaining.erase(0, chunk.size());
+    return chunk;
+}
+
+std::vector<std::string> wrap_command(const Entry& entry, int width) {
+    std::vector<std::string> lines;
+    std::string remaining = entry.name;
+    const int icon_cells = text_width(entry.icon) + 2;
+    lines.push_back(entry.icon + "  " +
+                    take_identifier_chunk(remaining, std::max(4, width - icon_cells)));
+    while (!remaining.empty()) lines.push_back(take_identifier_chunk(remaining, width));
+    return lines;
+}
+
 void render_section(std::ostringstream& output, const Paint& paint, int width,
                     const std::string& title, const std::vector<Entry>& entries) {
     if (entries.empty()) return;
+    const auto columns = grid_columns(width, entries.size());
+    const std::size_t across = columns.size();
     output << '\n' << paint.border(titled_border("╭", "╮", title + "  " +
                                                     std::to_string(entries.size()), width))
            << '\n';
+    output << paint.border(grid_rule(columns, "├", "┬", "┤")) << '\n';
+    output << paint.border("│");
+    for (const auto& column : columns) {
+        output << paint.cell("COMMAND", column.name, true, false)
+               << paint.border("│")
+               << paint.cell("DESCRIPTION", column.description, true, false)
+               << paint.border("│");
+    }
+    output << '\n' << paint.border(grid_rule(columns, "├", "┼", "┤")) << '\n';
 
-    if (width < 68) {
-        const int cell_width = width - 4;
-        bool alternate = false;
-        for (const auto& entry : entries) {
-            const std::string name = entry.icon + "  " + entry.name;
-            output << paint.border("│") << paint.cell(name, cell_width, true, alternate)
-                   << paint.border("│") << '\n';
-            for (const auto& line : wrap_text("↳ " + entry.description, cell_width)) {
-                output << paint.border("│") << paint.cell(line, cell_width, false, alternate)
-                       << paint.border("│") << '\n';
+    const std::size_t row_count = (entries.size() + across - 1) / across;
+    for (std::size_t row = 0; row < row_count; ++row) {
+        std::vector<std::vector<std::string>> names(across);
+        std::vector<std::vector<std::string>> descriptions(across);
+        std::size_t row_height = 1;
+        for (std::size_t card = 0; card < across; ++card) {
+            const std::size_t entry_index = row * across + card;
+            if (entry_index >= entries.size()) {
+                names[card] = {""};
+                descriptions[card] = {""};
+                continue;
             }
-            alternate = !alternate;
+            names[card] = wrap_command(entries[entry_index], columns[card].name);
+            descriptions[card] = wrap_text(entries[entry_index].description,
+                                           columns[card].description);
+            row_height = std::max(row_height, std::max(names[card].size(),
+                                                       descriptions[card].size()));
         }
-    } else {
-        int longest_name = 18;
-        for (const auto& entry : entries) {
-            longest_name = std::max(longest_name, text_width(entry.icon + "  " + entry.name));
-        }
-        const int name_width = std::clamp(std::max(width / 4, longest_name), 18,
-                                          std::min(36, width / 2));
-        const int description_width = width - name_width - 7;
-        output << paint.border("├" + repeat("─", name_width + 2) + "┬" +
-                               repeat("─", description_width + 2) + "┤") << '\n';
-        output << paint.border("│") << paint.cell("COMMAND", name_width, true, false)
-               << paint.border("│") << paint.cell("EXPANSION / DESCRIPTION", description_width, true, false)
-               << paint.border("│") << '\n';
-        output << paint.border("├" + repeat("─", name_width + 2) + "┼" +
-                               repeat("─", description_width + 2) + "┤") << '\n';
 
-        bool alternate = false;
-        for (const auto& entry : entries) {
-            const auto wrapped = wrap_text(entry.description, description_width);
-            for (std::size_t line = 0; line < wrapped.size(); ++line) {
-                const std::string name = line == 0 ? entry.icon + "  " + entry.name : "";
-                output << paint.border("│") << paint.cell(name, name_width, true, alternate)
-                       << paint.border("│") << paint.cell(wrapped[line], description_width, false, alternate)
-                       << paint.border("│") << '\n';
+        const bool alternate = row % 2 != 0;
+        for (std::size_t line = 0; line < row_height; ++line) {
+            output << paint.border("│");
+            for (std::size_t card = 0; card < across; ++card) {
+                const std::string name = line < names[card].size() ? names[card][line] : "";
+                const std::string description = line < descriptions[card].size()
+                                                    ? descriptions[card][line]
+                                                    : "";
+                output << paint.cell(name, columns[card].name, true, alternate)
+                       << paint.border("│")
+                       << paint.cell(description, columns[card].description, false, alternate)
+                       << paint.border("│");
             }
-            alternate = !alternate;
+            output << '\n';
+        }
+        if (row + 1 < row_count) {
+            output << paint.border(grid_rule(columns, "├", "┼", "┤")) << '\n';
         }
     }
-    output << paint.border("╰" + repeat("─", width - 2) + "╯") << '\n';
+    output << paint.border(grid_rule(columns, "╰", "┴", "╯")) << '\n';
 }
 
 void write_output(const std::string& output, bool use_pager) {

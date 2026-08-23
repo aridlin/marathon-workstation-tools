@@ -9,17 +9,22 @@ into two explicit top-level groups:
   `mdunicode`, `fckmpeg`, the workspace tools, and reusable workstation helpers.
 
 Both groups have focused subcategories for development, desktop, system,
-terminal/content, Wayland/workspaces, file/process work, and homelab tasks.
-The fixed list stays deliberate and consistently ordered. One-off job helpers,
-redundant package-manager wrappers, and directory noise are explicitly excluded.
+terminal/content, Wayland/workspaces, file/process work, and networking. Commands
+inside them are ordered by likely usefulness and frequency rather than alphabet.
+The fixed list stays deliberate: one-off transfer/notifier jobs (including all
+`proliant-*` and `rat-quest-*` helpers), redundant package-manager wrappers, and
+directory noise are explicitly excluded from both fixed and dynamic output.
 
 Separate dynamic-discovery tables source `.zshrc` in an isolated non-interactive
 Zsh process and list aliases, user functions, and useful unlisted executables
 found in `~/.local/bin` and `~/bin`. Newly added commands therefore remain
 visible without silently changing the curated sections.
 
-The output is a terminal-width-aware Unicode/Nerd Font table with true-color
-panels, alternating rows, and cell wrapping. It prints directly by default.
+The output is a terminal-width-aware Unicode/Nerd Font grid with true-color
+panels and alternating rows. Every item is a command/description column pair.
+The renderer chooses one, two, three, or more pairs per row from the live width,
+redistributes all available cells between them, and wraps both sides. It prints
+directly by default.
 
 Use `ahelp QUERY` to filter, `ahelp -i` for interactive pager navigation, and
 `ahelp --plain` for scripting. The optional pager is configured to display
