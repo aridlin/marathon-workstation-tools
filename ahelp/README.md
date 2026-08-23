@@ -20,12 +20,27 @@ Zsh process and list aliases, user functions, and useful unlisted executables
 found in `~/.local/bin` and `~/bin`. Newly added commands therefore remain
 visible without silently changing the curated sections.
 
+The complete fixed catalog lives in `~/.config/ahelp/commands.tsv`, not in the
+C++ source. Each non-comment row has six tab-separated fields:
+
+```text
+group  subcategory  subcategory-icon  command  command-icon  description
+```
+
+Row order controls display order; `group` is `standard` or `custom`. Set
+`AHELP_CONFIG` to test another catalog without replacing the live one. Malformed
+or missing catalogs produce a visible warning instead of silently substituting
+hardcoded commands.
+
 The output is a terminal-width-aware Unicode/Nerd Font note board. Every command
 is a separate rounded blob whose preferred width comes from its name and content.
 The renderer greedily packs one, two, three, or more varied cards into each row,
 keeps incomplete rows compact and centered, and lets descriptions determine card
 height. Six restrained accent/background palettes make adjacent notes distinct
-in color terminals. It prints directly by default.
+in color terminals; command names are bold and use a brighter shade than their
+card borders. Direct output reverses section/subcategory order so the primary
+categories sit nearest the prompt, while `-i` retains forward order for top-down
+paging. It prints directly by default.
 
 Use `ahelp QUERY` to filter, `ahelp -i` for interactive pager navigation, and
 `ahelp --plain` for scripting. The optional pager is configured to display

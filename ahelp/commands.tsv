@@ -1,0 +1,42 @@
+# ahelp fixed catalog
+# group<TAB>subcategory<TAB>subcategory icon<TAB>command<TAB>command icon<TAB>description
+# Row order is usefulness order. Groups: standard, custom.
+standard	AI, DEVELOPMENT & DATA	󰧑	codex	󰚩	OpenAI Codex terminal agent.
+standard	AI, DEVELOPMENT & DATA	󰧑	pnpm		Fast, disk-efficient JavaScript package manager.
+standard	AI, DEVELOPMENT & DATA	󰧑	uv		Fast Python project and package manager.
+standard	AI, DEVELOPMENT & DATA	󰧑	uvx	󰏗	Run Python tools in disposable uv environments.
+standard	AI, DEVELOPMENT & DATA	󰧑	harlequin	󰆼	Terminal SQL IDE and database client.
+standard	AI, DEVELOPMENT & DATA	󰧑	datasette		Explore and publish SQLite databases through a web interface.
+standard	DESKTOP & CAPTURE	󰍹	firefox	󰈹	Firefox web browser.
+standard	DESKTOP & CAPTURE	󰍹	walker	󰍉	Fast Wayland application launcher.
+standard	DESKTOP & CAPTURE	󰍹	ghostty	󰊠	GPU-accelerated terminal emulator.
+standard	DESKTOP & CAPTURE	󰍹	flameshot	󰹑	Capture, annotate, and copy screenshots.
+standard	SYSTEM & CONNECTIVITY	󰒋	btop		Interactive system and process monitor.
+standard	SYSTEM & CONNECTIVITY	󰒋	nmtui	󰤨	NetworkManager terminal interface.
+standard	SYSTEM & CONNECTIVITY	󰒋	syncthing	󰓦	Peer-to-peer file synchronization service.
+standard	GAMES & COMPATIBILITY	󰊗	flashpoint	󰈸	Launch the local Flashpoint web-game archive.
+standard	GAMES & COMPATIBILITY	󰊗	gameconqueror	󰮂	Launch the GameConqueror memory scanner.
+standard	GAMES & COMPATIBILITY	󰊗	hyprshade	󰖨	Manage Hyprland screen shaders.
+custom	TERMINAL & CONTENT	󰆍	ahelp	󰋖	Show this polished personal command reference.
+custom	TERMINAL & CONTENT	󰆍	overcalc	󰃬	Evaluate rich math with Unicode, LaTeX, steps, JSON, and derivatives.
+custom	TERMINAL & CONTENT	󰆍	mdunicode	󰗊	Convert Markdown, Discord formatting, LaTeX, and math into Unicode.
+custom	TERMINAL & CONTENT	󰆍	fckmpeg	󰈙	Guided CLI/TUI media converter with terminal previews.
+custom	TERMINAL & CONTENT	󰆍	wemote	󰞅	Search and insert emoji from the terminal.
+custom	TERMINAL & CONTENT	󰆍	cp1-notif	󰐪	Render notifications and print them on a Paperang CP1 thermal printer.
+custom	WORKSPACES & WAYLAND		workspace-field	󰆾	Open the fast graphical 10x10 Hyprland workspace field.
+custom	WORKSPACES & WAYLAND		workspace-display-manager	󰹑	Choose display order and main output for the 2D workspace grid.
+custom	WORKSPACES & WAYLAND		wayfreeze	󰜺	Freeze a Wayland screen region for inspection.
+custom	WORKSPACES & WAYLAND		igpu-watch	󰢮	Monitor Intel integrated-GPU activity.
+custom	WORKSPACES & WAYLAND		hypr-marathon-session	󰍹	Start the full Marathon Hyprland login session.
+custom	WORKSPACES & WAYLAND		hypr-marathon-nested	󰖲	Start the Marathon Hyprland profile nested inside this session.
+custom	WORKSPACES & WAYLAND		waydroid-phone-multitouch.py		Forward Android multitouch events into a Waydroid touchscreen device.
+custom	FILES, PACKAGES & PROCESSES	󰉋	wfind	󰍉	Interactive recursive file and directory finder.
+custom	FILES, PACKAGES & PROCESSES	󰉋	wparu		Interactive package search, install, and removal frontend for paru.
+custom	FILES, PACKAGES & PROCESSES	󰉋	wproc	󰄉	Interactive process browser and signal sender.
+custom	FILES, PACKAGES & PROCESSES	󰉋	wmount	󰋊	Interactive removable-volume mount and unmount tool.
+custom	FILES, PACKAGES & PROCESSES	󰉋	wzip	󰿺	Interactive ZIP archive creator.
+custom	FILES, PACKAGES & PROCESSES	󰉋	wtar	󰗄	Interactive tar archive creator.
+custom	FILES, PACKAGES & PROCESSES	󰉋	wvenv	󰆧	Create, enter, and manage a project Python virtual environment.
+custom	FILES, PACKAGES & PROCESSES	󰉋	wchmod	󰌾	Interactive file-permission picker.
+custom	NETWORK	󰒍	wssh	󰣀	Choose and connect to hosts from ~/.ssh/config.
+custom	NETWORK	󰒍	wserve	󰒍	Serve the current directory with a practical browser file interface.

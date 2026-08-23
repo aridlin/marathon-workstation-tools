@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <fcntl.h>
 #include <iostream>
 #include <map>
@@ -41,6 +42,12 @@ struct CommandSubcategory {
     std::vector<Entry> entries;
 };
 
+struct Catalog {
+    std::vector<CommandSubcategory> standard;
+    std::vector<CommandSubcategory> custom_commands;
+    std::string error;
+};
+
 struct Terminal {
     int width = 96;
     int height = 30;
@@ -54,67 +61,6 @@ const std::unordered_map<std::string, std::string> kFunctionDescriptions = {
     {"swayhelp", "Show the legacy Sway keybinding cheat sheet."},
     {"ytdp", "Download a video into ~/Downloads with yt-dlp."},
     {"ytmp", "Download audio as MP3 into ~/Downloads with yt-dlp."},
-};
-
-const std::vector<CommandSubcategory> kStandardCommands = {
-    {"AI, DEVELOPMENT & DATA", "󰧑", {
-    {"codex", "OpenAI Codex terminal agent.", "󰚩"},
-    {"pnpm", "Fast, disk-efficient JavaScript package manager.", ""},
-    {"uv", "Fast Python project and package manager.", ""},
-    {"uvx", "Run Python tools in disposable uv environments.", "󰏗"},
-    {"harlequin", "Terminal SQL IDE and database client.", "󰆼"},
-    {"datasette", "Explore and publish SQLite databases through a web interface.", ""},
-    }},
-    {"DESKTOP & CAPTURE", "󰍹", {
-    {"firefox", "Firefox web browser.", "󰈹"},
-    {"walker", "Fast Wayland application launcher.", "󰍉"},
-    {"ghostty", "GPU-accelerated terminal emulator.", "󰊠"},
-    {"flameshot", "Capture, annotate, and copy screenshots.", "󰹑"},
-    }},
-    {"SYSTEM & CONNECTIVITY", "󰒋", {
-    {"btop", "Interactive system and process monitor.", ""},
-    {"nmtui", "NetworkManager terminal interface.", "󰤨"},
-    {"syncthing", "Peer-to-peer file synchronization service.", "󰓦"},
-    }},
-    {"GAMES & COMPATIBILITY", "󰊗", {
-    {"flashpoint", "Launch the local Flashpoint web-game archive.", "󰈸"},
-    {"gameconqueror", "Launch the GameConqueror memory scanner.", "󰮂"},
-    {"hyprshade", "Manage Hyprland screen shaders.", "󰖨"},
-    }},
-};
-
-const std::vector<CommandSubcategory> kCustomCommands = {
-    {"TERMINAL & CONTENT", "󰆍", {
-    {"ahelp", "Show this polished personal command reference.", "󰋖"},
-    {"overcalc", "Evaluate rich math with Unicode, LaTeX, steps, JSON, and derivatives.", "󰃬"},
-    {"mdunicode", "Convert Markdown, Discord formatting, LaTeX, and math into Unicode.", "󰗊"},
-    {"fckmpeg", "Guided CLI/TUI media converter with terminal previews.", "󰈙"},
-    {"wemote", "Search and insert emoji from the terminal.", "󰞅"},
-    {"cp1-notif", "Render notifications and print them on a Paperang CP1 thermal printer.", "󰐪"},
-    }},
-    {"WORKSPACES & WAYLAND", "", {
-    {"workspace-field", "Open the fast graphical 10x10 Hyprland workspace field.", "󰆾"},
-    {"workspace-display-manager", "Choose display order and main output for the 2D workspace grid.", "󰹑"},
-    {"wayfreeze", "Freeze a Wayland screen region for inspection.", "󰜺"},
-    {"igpu-watch", "Monitor Intel integrated-GPU activity.", "󰢮"},
-    {"hypr-marathon-session", "Start the full Marathon Hyprland login session.", "󰍹"},
-    {"hypr-marathon-nested", "Start the Marathon Hyprland profile nested inside this session.", "󰖲"},
-    {"waydroid-phone-multitouch.py", "Forward Android multitouch events into a Waydroid touchscreen device.", ""},
-    }},
-    {"FILES, PACKAGES & PROCESSES", "󰉋", {
-    {"wfind", "Interactive recursive file and directory finder.", "󰍉"},
-    {"wparu", "Interactive package search, install, and removal frontend for paru.", ""},
-    {"wproc", "Interactive process browser and signal sender.", "󰄉"},
-    {"wmount", "Interactive removable-volume mount and unmount tool.", "󰋊"},
-    {"wzip", "Interactive ZIP archive creator.", "󰿺"},
-    {"wtar", "Interactive tar archive creator.", "󰗄"},
-    {"wvenv", "Create, enter, and manage a project Python virtual environment.", "󰆧"},
-    {"wchmod", "Interactive file-permission picker.", "󰌾"},
-    }},
-    {"NETWORK", "󰒍", {
-    {"wssh", "Choose and connect to hosts from ~/.ssh/config.", "󰣀"},
-    {"wserve", "Serve the current directory with a practical browser file interface.", "󰒍"},
-    }},
 };
 
 const std::set<std::string> kIgnoredDynamicCommands = {
@@ -141,6 +87,80 @@ bool ignored_dynamic_command(const std::string& name) {
 std::string home_directory() {
     if (const char* home = std::getenv("HOME")) return home;
     return ".";
+}
+
+std::string lower(std::string value);
+
+fs::path catalog_path() {
+    if (const char* override_path = std::getenv("AHELP_CONFIG")) return override_path;
+    if (const char* config_home = std::getenv("XDG_CONFIG_HOME")) {
+        return fs::path(config_home) / "ahelp/commands.tsv";
+    }
+    return fs::path(home_directory()) / ".config/ahelp/commands.tsv";
+}
+
+Catalog load_catalog() {
+    Catalog catalog;
+    const fs::path path = catalog_path();
+    std::ifstream input(path);
+    if (!input) {
+        catalog.error = "Cannot open catalog: " + path.string();
+        return catalog;
+    }
+
+    std::string line;
+    std::size_t line_number = 0;
+    while (std::getline(input, line)) {
+        ++line_number;
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (line.empty() || line.front() == '#') continue;
+        std::vector<std::string> fields;
+        std::size_t start = 0;
+        while (true) {
+            const std::size_t tab = line.find('\t', start);
+            fields.push_back(line.substr(start, tab == std::string::npos
+                                                   ? std::string::npos
+                                                   : tab - start));
+            if (tab == std::string::npos) break;
+            start = tab + 1;
+        }
+        if (fields.size() != 6 || std::any_of(fields.begin(), fields.end(),
+                                              [](const std::string& value) {
+                                                  return value.empty();
+                                              })) {
+            catalog.error = path.string() + ":" + std::to_string(line_number) +
+                            ": expected 6 non-empty tab-separated fields";
+            return catalog;
+        }
+
+        std::vector<CommandSubcategory>* categories = nullptr;
+        const std::string group = lower(fields[0]);
+        if (group == "standard") categories = &catalog.standard;
+        else if (group == "custom") categories = &catalog.custom_commands;
+        else {
+            catalog.error = path.string() + ":" + std::to_string(line_number) +
+                            ": group must be standard or custom";
+            return catalog;
+        }
+
+        auto category = std::find_if(categories->begin(), categories->end(),
+                                     [&](const CommandSubcategory& value) {
+                                         return value.title == fields[1];
+                                     });
+        if (category == categories->end()) {
+            categories->push_back({fields[1], fields[2], {}});
+            category = std::prev(categories->end());
+        } else if (category->icon != fields[2]) {
+            catalog.error = path.string() + ":" + std::to_string(line_number) +
+                            ": subcategory icon differs from its first row";
+            return catalog;
+        }
+        category->entries.push_back({fields[3], fields[5], fields[4]});
+    }
+    if (catalog.standard.empty() && catalog.custom_commands.empty()) {
+        catalog.error = "Catalog contains no commands: " + path.string();
+    }
+    return catalog;
 }
 
 int text_width(const std::string& text) {
@@ -282,8 +302,16 @@ struct Paint {
 
     const char* blob_accent(int palette) const {
         static const char* colors[] = {
-            "1;38;2;112;194;139", "1;38;2;91;192;211", "1;38;2;186;148;255",
-            "1;38;2;244;190;87", "1;38;2;239;121;151", "1;38;2;112;161;255",
+            "38;2;77;157;107", "38;2;64;154;171", "38;2;142;107;204",
+            "38;2;192;142;54", "38;2;192;82;114", "38;2;76;121;204",
+        };
+        return colors[palette % 6];
+    }
+
+    const char* blob_name_accent(int palette) const {
+        static const char* colors[] = {
+            "1;38;2;145;235;176", "1;38;2;128;224;240", "1;38;2;210;181;255",
+            "1;38;2;255;216;126", "1;38;2;255;157;182", "1;38;2;151;190;255",
         };
         return colors[palette % 6];
     }
@@ -298,6 +326,10 @@ struct Paint {
 
     std::string blob_border(const std::string& text, int palette) const {
         return enabled ? code(blob_accent(palette)) + text + reset() : text;
+    }
+
+    std::string blob_name(const std::string& text, int palette) const {
+        return enabled ? code(blob_name_accent(palette)) + text + reset() : text;
     }
 
     std::string blob_cell(const std::string& text, int width, int palette) const {
@@ -423,10 +455,12 @@ std::string dynamic_icon(const std::string& name, const fs::path& path) {
     return "";
 }
 
-std::vector<Entry> collect_dynamic_commands() {
+std::vector<Entry> collect_dynamic_commands(
+    const std::vector<CommandSubcategory>& standard,
+    const std::vector<CommandSubcategory>& custom_commands) {
     std::map<std::string, fs::path> paths;
     std::set<std::string> curated_names;
-    for (const auto* categories : {&kStandardCommands, &kCustomCommands}) {
+    for (const auto* categories : {&standard, &custom_commands}) {
         for (const auto& category : *categories) {
             for (const auto& entry : category.entries) curated_names.insert(entry.name);
         }
@@ -522,10 +556,11 @@ BlobCard make_blob(const Entry& entry, int width, const Paint& paint) {
     card.palette = blob_palette(entry);
     const std::string title = truncate_to(entry.icon + "  " + entry.name,
                                           std::max(1, width - 5));
-    const std::string label = "─ " + title + " ";
-    card.lines.push_back(paint.blob_border(
-        "╭" + label + repeat("─", std::max(0, width - 2 - text_width(label))) + "╮",
-        card.palette));
+    const int trailing = std::max(0, width - text_width(title) - 5);
+    card.lines.push_back(paint.blob_border("╭─ ", card.palette) +
+                         paint.blob_name(title, card.palette) +
+                         paint.blob_border(" " + repeat("─", trailing) + "╮",
+                                           card.palette));
     for (const auto& line : wrap_text(entry.description, width - 4)) {
         card.lines.push_back(paint.blob_border("│", card.palette) +
                              paint.blob_cell(line, width - 4, card.palette) +
@@ -621,12 +656,13 @@ int main(int argc, char** argv) {
     }
 
     int shell_status = 0;
-    std::vector<CommandSubcategory> standard = kStandardCommands;
-    std::vector<CommandSubcategory> custom = kCustomCommands;
+    Catalog catalog = load_catalog();
+    std::vector<CommandSubcategory> standard = std::move(catalog.standard);
+    std::vector<CommandSubcategory> custom = std::move(catalog.custom_commands);
     std::vector<Entry> aliases;
     std::vector<Entry> functions;
     collect_shell(aliases, functions, shell_status);
-    std::vector<Entry> discovered = collect_dynamic_commands();
+    std::vector<Entry> discovered = collect_dynamic_commands(standard, custom);
 
     const auto filter = [&](std::vector<Entry>& entries) {
         entries.erase(std::remove_if(entries.begin(), entries.end(),
@@ -661,34 +697,64 @@ int main(int argc, char** argv) {
 
     const Terminal terminal = terminal_info(plain);
     const Paint paint{terminal.color};
+    const bool reverse_categories = !pager;
     std::ostringstream output;
     render_banner(output, paint, terminal.width, standard_count, custom_count,
                   aliases.size(), functions.size(), discovered.size(), query);
-    if (standard_count > 0) {
+
+    const auto render_subcategories = [&](const std::vector<CommandSubcategory>& categories) {
+        if (reverse_categories) {
+            for (auto category = categories.rbegin(); category != categories.rend(); ++category) {
+                render_section(output, paint, terminal.width,
+                               category->icon + "  " + category->title, category->entries);
+            }
+        } else {
+            for (const auto& category : categories) {
+                render_section(output, paint, terminal.width,
+                               category.icon + "  " + category.title, category.entries);
+            }
+        }
+    };
+    const auto render_standard = [&] {
+        if (standard_count == 0) return;
         render_category_header(output, paint, terminal.width, "󰏗", "STANDARD / EXTERNAL COMMANDS",
                                standard_count);
-        for (const auto& category : standard) {
-            render_section(output, paint, terminal.width,
-                           category.icon + "  " + category.title, category.entries);
-        }
-    }
-    if (custom_count > 0) {
+        render_subcategories(standard);
+    };
+    const auto render_custom = [&] {
+        if (custom_count == 0) return;
         render_category_header(output, paint, terminal.width, "󰋖", "CUSTOM-BUILT UTILITIES",
                                custom_count);
-        for (const auto& category : custom) {
-            render_section(output, paint, terminal.width,
-                           category.icon + "  " + category.title, category.entries);
-        }
-    }
-    if (dynamic_count > 0) {
+        render_subcategories(custom);
+    };
+    const auto render_dynamic = [&] {
+        if (dynamic_count == 0) return;
         render_category_header(output, paint, terminal.width, "󰌷", "DYNAMIC DISCOVERY",
                                dynamic_count);
-        render_section(output, paint, terminal.width, "󰘳  ZSH ALIASES", aliases);
-        render_section(output, paint, terminal.width, "󰊕  ZSH FUNCTIONS", functions);
-        render_section(output, paint, terminal.width, "󰌷  UNLISTED EXECUTABLES", discovered);
+        if (reverse_categories) {
+            render_section(output, paint, terminal.width, "󰌷  UNLISTED EXECUTABLES", discovered);
+            render_section(output, paint, terminal.width, "󰊕  ZSH FUNCTIONS", functions);
+            render_section(output, paint, terminal.width, "󰘳  ZSH ALIASES", aliases);
+        } else {
+            render_section(output, paint, terminal.width, "󰘳  ZSH ALIASES", aliases);
+            render_section(output, paint, terminal.width, "󰊕  ZSH FUNCTIONS", functions);
+            render_section(output, paint, terminal.width, "󰌷  UNLISTED EXECUTABLES", discovered);
+        }
+    };
+    if (reverse_categories) {
+        render_dynamic();
+        render_custom();
+        render_standard();
+    } else {
+        render_standard();
+        render_custom();
+        render_dynamic();
     }
     if (shell_status != 0) {
         output << '\n' << paint.warning("⚠ Zsh scan exited with status " + std::to_string(shell_status)) << '\n';
+    }
+    if (!catalog.error.empty()) {
+        output << '\n' << paint.warning("⚠ " + catalog.error) << '\n';
     }
     if (standard_count == 0 && custom_count == 0 && dynamic_count == 0) {
         output << '\n' << paint.warning("󰅙  No command matched “" + query + "”.") << '\n';

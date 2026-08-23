@@ -138,14 +138,20 @@ The renderer adapts to terminal width:
 - the live width greedily packs one, two, three, or more varied cards per row;
 - incomplete rows stay compact and centered instead of growing empty cells;
 - six restrained truecolor palettes visually separate adjacent cards;
+- command names are bold and brighter than their card borders;
+- direct output reverses category order to place primary sections nearest the
+  prompt, while `-i` keeps natural forward order for paging;
 - Private Use Area glyphs are marked printable for the optional `less` pager,
   preventing `<U+F...>` escapes.
 
-To change the fixed reference, edit `kStandardCommands` or `kCustomCommands` in
-`ahelp/main.cpp`. Add one-off names to `kIgnoredDynamicCommands` when they should
-not reappear through live discovery, or use `kIgnoredDynamicPrefixes` for a
-whole temporary helper family. Dynamic discoveries do not mutate either curated
-list.
+The fixed reference is entirely data-driven from
+`~/.config/ahelp/commands.tsv`. Its six tab-separated fields are group,
+subcategory, subcategory icon, command, command icon, and description; row order
+is display priority. `make install` installs the repository catalog and
+`AHELP_CONFIG=/path/to/commands.tsv` selects a temporary alternative. Add
+one-off names to `kIgnoredDynamicCommands` when they should not reappear through
+live discovery, or use `kIgnoredDynamicPrefixes` for a whole temporary helper
+family. Dynamic discoveries never mutate the catalog.
 
 ## Dependencies
 
@@ -197,6 +203,7 @@ make install
 This installs only user-owned files:
 
 - binaries under `~/.local/bin`;
+- the editable ahelp catalog under `~/.config/ahelp`;
 - workspace scripts under `~/.config/hypr`;
 - the display-manager desktop entry under `~/.local/share/applications`;
 - its scalable icon under `~/.local/share/icons/hicolor/scalable/apps`.
