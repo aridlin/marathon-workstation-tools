@@ -4,6 +4,7 @@
 #include <clocale>
 #include <csignal>
 #include <cstdio>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -111,10 +112,14 @@ int text_width(const std::string& text) {
             continue;
         }
         if (consumed == 0) break;
+        const auto codepoint = static_cast<std::uint32_t>(character);
+        const bool nerd_glyph = (codepoint >= 0xE000 && codepoint <= 0xF8FF) ||
+                                (codepoint >= 0xF0000 && codepoint <= 0xFFFFD) ||
+                                (codepoint >= 0x100000 && codepoint <= 0x10FFFD);
         const int cell_width = wcwidth(character);
-        // glibc returns -1 for some private-use Nerd Font glyphs in lean
-        // locales even though terminals render them as one cell.
-        width += cell_width < 0 ? 1 : cell_width;
+        // Nerd Font private-use glyphs render as one terminal cell even when
+        // locale-specific wcwidth tables report -1 or 2.
+        width += nerd_glyph ? 1 : (cell_width < 0 ? 1 : cell_width);
         cursor += consumed;
         remaining -= consumed;
     }
@@ -139,8 +144,12 @@ std::string truncate_to(const std::string& text, int maximum) {
         if (safe_consumed == 0) break;
         int cells = 1;
         if (consumed != static_cast<std::size_t>(-1) && consumed != static_cast<std::size_t>(-2)) {
+            const auto codepoint = static_cast<std::uint32_t>(character);
+            const bool nerd_glyph = (codepoint >= 0xE000 && codepoint <= 0xF8FF) ||
+                                    (codepoint >= 0xF0000 && codepoint <= 0xFFFFD) ||
+                                    (codepoint >= 0x100000 && codepoint <= 0x10FFFD);
             const int measured = wcwidth(character);
-            cells = measured < 0 ? 1 : measured;
+            cells = nerd_glyph ? 1 : (measured < 0 ? 1 : measured);
         } else {
             state = {};
         }
