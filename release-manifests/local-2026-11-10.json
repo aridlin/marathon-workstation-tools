@@ -1,0 +1,31 @@
+{
+  "snapshot": "2026-11-10",
+  "project": "marathon-workstation-tools",
+  "status": "prerelease local-work snapshot",
+  "artifacts": [
+    {
+      "path": "ahelp/ahelp",
+      "size": 149376,
+      "sha256": "7640b7bf087cfea41834de5393f93e62fea589cfc38fbef2aad2a94018d85561"
+    },
+    {
+      "path": "workspace-display-manager/workspace-display-manager",
+      "size": 107776,
+      "sha256": "257b2eb177b8da865db8cf2b2adc4320ab5abb5abd1d06691aaed4391e276514"
+    },
+    {
+      "path": "workspace-field/workspace-field",
+      "size": 99952,
+      "sha256": "58f55aa795d0ae057669a4bcd3f56f00efa9835115a8a8b2add12955b998015b"
+    }
+  ],
+  "checks": [
+    {
+      "job": "marathon-workstation-tools",
+      "passed": true,
+      "command": "make -j2"
+    }
+  ],
+  "notes": [],
+  "runtime": "Linux x86_64 dynamic system libraries for ELF binaries; .exe cross-compiled Windows x64; APK preview/debug; OXT platform independent. Source/API compatibility and hardware behavior are not implied by compilation."
+}
